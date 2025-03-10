@@ -146,21 +146,20 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
       body: ListView.builder(
         itemCount: plans.length,
         itemBuilder: (context, index) {
-          return Draggable<Plan>(
-            data: plans[index],
-            feedback: Material(
-              child: ListTile(
-                title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
-              ),
-            ),
-            childWhenDragging: Opacity(
-              opacity: 0.5,
-              child: ListTile(
-                title: Text(plans[index].name),
-              ),
+          return Dismissible(
+            key: Key(plans[index].name),
+            direction: DismissDirection.endToStart,
+            onDismissed: (direction) {
+              _deletePlan(index);
+            },
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: const Icon(Icons.delete, color: Colors.white),
             ),
             child: GestureDetector(
-              onDoubleTap: () => _deletePlan(index),
+              onLongPress: () => _showPlanDialog(index: index),
               child: ListTile(
                 title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
                 subtitle: Column(
@@ -173,12 +172,19 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                     ),
                   ],
                 ),
-                trailing: IconButton(
-                  icon: Icon(plans[index].isCompleted ? Icons.check_box : Icons.check_box_outline_blank),
-                  onPressed: () => _toggleCompletion(index),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () => _showPlanDialog(index: index),
+                    ),
+                    IconButton(
+                      icon: Icon(plans[index].isCompleted ? Icons.check_box : Icons.check_box_outline_blank),
+                      onPressed: () => _toggleCompletion(index),
+                    ),
+                  ],
                 ),
-                onLongPress: () => _showPlanDialog(index: index),
-                onTap: () => _toggleCompletion(index),
               ),
             ),
           );
