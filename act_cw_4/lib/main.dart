@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -100,10 +101,19 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
                     lastDate: DateTime(2030),
                   );
                   if (pickedDate != null) {
-                    selectedDate = pickedDate;
+                    setState(() {
+                      selectedDate = pickedDate;
+                    });
                   }
                 },
                 child: const Text('Select Date'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'Selected Date: ${selectedDate.toLocal().toString().split(' ')[0]}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -136,15 +146,33 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
       body: ListView.builder(
         itemCount: plans.length,
         itemBuilder: (context, index) {
-          return Dismissible(
-            key: Key(plans[index].name),
-            onDismissed: (direction) => _deletePlan(index),
-            background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), child: const Icon(Icons.delete, color: Colors.white)),
+          return Draggable<Plan>(
+            data: plans[index],
+            feedback: Material(
+              child: ListTile(
+                title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
+              ),
+            ),
+            childWhenDragging: Opacity(
+              opacity: 0.5,
+              child: ListTile(
+                title: Text(plans[index].name),
+              ),
+            ),
             child: GestureDetector(
               onDoubleTap: () => _deletePlan(index),
               child: ListTile(
                 title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
-                subtitle: Text(plans[index].description),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(plans[index].description),
+                    Text(
+                      'Date: ${plans[index].date.toLocal().toString().split(' ')[0]}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
+                  ],
+                ),
                 trailing: IconButton(
                   icon: Icon(plans[index].isCompleted ? Icons.check_box : Icons.check_box_outline_blank),
                   onPressed: () => _toggleCompletion(index),
