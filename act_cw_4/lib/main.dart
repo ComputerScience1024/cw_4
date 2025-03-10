@@ -71,6 +71,16 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
     });
   }
 
+  void _reorderPlans(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final Plan movedPlan = plans.removeAt(oldIndex);
+      plans.insert(newIndex, movedPlan);
+    });
+  }
+
   void _showPlanDialog({int? index}) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController descController = TextEditingController();
@@ -143,9 +153,9 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Plan Manager')),
-      body: ListView.builder(
-        itemCount: plans.length,
-        itemBuilder: (context, index) {
+      body: ReorderableListView(
+        onReorder: _reorderPlans,
+        children: List.generate(plans.length, (index) {
           return Dismissible(
             key: Key(plans[index].name),
             direction: DismissDirection.endToStart,
@@ -158,37 +168,35 @@ class _PlanManagerScreenState extends State<PlanManagerScreen> {
               padding: const EdgeInsets.only(right: 20),
               child: const Icon(Icons.delete, color: Colors.white),
             ),
-            child: GestureDetector(
-              onLongPress: () => _showPlanDialog(index: index),
-              child: ListTile(
-                title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(plans[index].description),
-                    Text(
-                      'Date: ${plans[index].date.toLocal().toString().split(' ')[0]}',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _showPlanDialog(index: index),
-                    ),
-                    IconButton(
-                      icon: Icon(plans[index].isCompleted ? Icons.check_box : Icons.check_box_outline_blank),
-                      onPressed: () => _toggleCompletion(index),
-                    ),
-                  ],
-                ),
+            child: ListTile(
+              key: ValueKey(plans[index]),
+              title: Text(plans[index].name, style: TextStyle(decoration: plans[index].isCompleted ? TextDecoration.lineThrough : null)),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(plans[index].description),
+                  Text(
+                    'Date: ${plans[index].date.toLocal().toString().split(' ')[0]}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                ],
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => _showPlanDialog(index: index),
+                  ),
+                  IconButton(
+                    icon: Icon(plans[index].isCompleted ? Icons.check_box : Icons.check_box_outline_blank),
+                    onPressed: () => _toggleCompletion(index),
+                  ),
+                ],
               ),
             ),
           );
-        },
+        }),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPlanDialog(),
